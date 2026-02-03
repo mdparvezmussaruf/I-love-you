@@ -1,75 +1,109 @@
-const letters = document.querySelectorAll(".lttr");
+const textEl = document.getElementById("loveText");
 const lineLeft = document.querySelector(".line--left");
 const lineRight = document.querySelector(".line--right");
 const heart = document.querySelector(".heart");
 
-const tl = gsap.timeline({
-  repeat: -1,
-  repeatDelay: 1.2,
-  defaults: { ease: "power3.out" }
-});
+// NAME TYPING
+const nameText = "Rova BUBU";
+const typedText = document.getElementById("typed-text");
+let charIndex = 0;
 
-// RESET
-tl.set(letters, { opacity: 0, y: 12, scale: 0.95 });
-tl.set([lineLeft, lineRight], { scaleY: 0 });
-tl.set(heart, { opacity: 0, scale: 0 });
+function resetTyping() {
+  typedText.textContent = "";
+  charIndex = 0;
+}
 
-// LINES DRAW
-tl.to(lineLeft, {
-  scaleY: 1,
-  transformOrigin: "top",
-  duration: 0.6
-});
-tl.to(lineRight, {
-  scaleY: 1,
-  transformOrigin: "top",
-  duration: 0.6
-}, "<");
-
-// LETTERS IN
-tl.to(letters, {
-  opacity: 1,
-  y: 0,
-  scale: 1,
-  duration: 0.8,
-  stagger: 0.08
-});
-
-// FLOAT EFFECT
-tl.to(letters, {
-  y: -5,
-  duration: 1.2,
-  ease: "sine.inOut",
-  stagger: {
-    each: 0.12,
-    yoyo: true,
-    repeat: 1
+function typeName() {
+  if (charIndex < nameText.length) {
+    typedText.textContent += nameText.charAt(charIndex);
+    charIndex++;
+    setTimeout(typeName, 90);
   }
+}
+
+// DYNAMIC LINE HEIGHT BASED ON TEXT WIDTH
+function setDynamicLineHeight() {
+  const textWidth = textEl.offsetWidth;
+  const height = textWidth * 0.45;
+
+  lineLeft.style.height = height + "px";
+  lineRight.style.height = height + "px";
+}
+
+setDynamicLineHeight();
+window.addEventListener("resize", setDynamicLineHeight);
+
+// GSAP TIMELINE
+const tl = gsap.timeline({ repeat: -1, repeatDelay: 1 });
+
+// TEXT ENTRANCE
+tl.from(textEl, {
+  opacity: 0,
+  y: -30,
+  duration: 0.8,
+  ease: "power3.out"
+});
+
+// LINES GROW
+tl.fromTo(
+  [lineLeft, lineRight],
+  { scaleY: 0 },
+  { scaleY: 1, duration: 0.6, ease: "power3.out" },
+  "-=0.4"
+);
+
+// LINE PULSE
+tl.to([lineLeft, lineRight], {
+  scaleY: 1.15,
+  duration: 0.5,
+  yoyo: true,
+  repeat: 1,
+  ease: "sine.inOut"
 });
 
 // HEART BEAT
-tl.to(heart, {
-  opacity: 1,
-  scale: 1,
-  duration: 0.4,
-  ease: "elastic.out(1, 0.4)"
-});
-tl.to(heart, {
-  scale: 1.15,
+// HEART BEAT (REALISTIC + FEMININE)
+tl.fromTo(
+  ".heart",
+  { scale: 1 },
+  {
+    scale: 1.18,
+    duration: 0.35,
+    ease: "power2.inOut",
+    yoyo: true,
+    repeat: 1
+  }
+);
+
+// subtle secondary pulse
+tl.to(".heart", {
+  scale: 1.08,
   duration: 0.25,
+  ease: "sine.inOut",
   yoyo: true,
   repeat: 1
 });
 
-// EXIT
-tl.to(letters, {
-  opacity: 0,
-  y: -10,
-  duration: 0.6,
-  stagger: 0.05
+
+// START NAME TYPING
+tl.call(() => {
+  resetTyping();
+  typeName();
 });
-tl.to(heart, {
+
+// EXIT
+tl.to([lineLeft, lineRight], {
+  scaleY: 0,
+  duration: 0.5,
+  ease: "power2.in"
+}, "+=1");
+
+tl.to([textEl, heart], {
   opacity: 0,
-  scale: 0,
-  duration: 0.4
+  duration: 0.6
+});
+
+tl.call(() => {
+  resetTyping();
+  gsap.set([textEl, heart], { opacity: 1 });
 });
